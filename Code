@@ -1,0 +1,181 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+struct stBox {
+    int value;
+    int player;
+};
+
+int checkwin();
+void board();
+char Player1[256],Player2[256];
+stBox Box[9];
+
+int main()
+{
+    int playerNo = 1, i, choice,coin,result = -1,bValid;
+    int arr1[6]={1,1,2,2,3,3};
+    int arr2[6]={1,1,2,2,3,3};
+    char chChoice[2];
+
+    printf("Enter the name of 1st player:  \n");
+    scanf("%s",Player1);
+    printf("Enter the name of 2nd player:  \n");
+    scanf("%s",Player2);
+
+    // Initialize the box.
+	for(i=0;i<9;i++) {
+        Box[i].value = 0;
+        Box[i].player = 0;
+    }
+
+    do
+    {
+        board();
+        playerNo = (playerNo % 2) ? 1 : 2;
+
+        while(1)
+        {
+            if (playerNo == 1)  printf("%s, enter the grid number:  ", Player1);
+            else printf("%s, enter the grid number:  ", Player2);
+            scanf("%s", chChoice);
+            if (toupper(chChoice[0]) <'1' || toupper(chChoice[0]) >'9')
+            {
+                printf("invalid input, enter again! \n");
+				continue;
+            }
+			choice = chChoice[0]-'1'; // Convert the character to the index of the Box.
+			while(1)
+			{
+				printf("Enter the coin no. : ");
+				scanf("%d",&coin);
+				if(coin<0||coin>3)
+				{
+				   printf("invalid input, enter again! \n");
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			if(playerNo==1)
+			{
+				bValid = false;
+				for(i=0;i<6;i++)
+				{
+					if(arr1[i]==coin)
+					{
+						if(Box[choice].value<coin) // Another player with higher coin value can occupy the box. 
+						{
+							 Box[choice].value=coin;
+							 Box[choice].player = playerNo;
+							 arr1[i]-=coin;
+							 bValid = true;
+							 break;
+						}
+					}
+				}
+				if (bValid == false) // Box not set
+				{
+					printf("invalid input, enter again! \n");
+					continue;
+				}
+			}
+			else if(playerNo==2)
+			{
+				bValid = false;
+				for(i=0;i<6;i++)
+				{
+					if(arr2[i]==coin)
+					{
+						if(Box[choice].value<coin)
+						{
+							Box[choice].value=coin;
+							Box[choice].player = playerNo;
+							arr2[i]-=coin;
+							bValid = true;
+							break;
+						}
+
+					}
+				}
+				if (bValid == false) // Box not set
+				{
+					printf("invalid input, enter again! \n");
+					continue;
+				}
+			}
+			break;
+		}
+        result = checkwin();
+		if (result == 1) break;
+
+        playerNo++;
+    }
+    while (result == -1);
+
+    board();
+
+    if (playerNo == 1)
+        printf("\n**** Congratulations! Player '%s' wins ****\n\n", Player1);
+    else if (playerNo == 2)
+        printf("\n**** Congratulations! Player '%s' wins ****\n\n", Player2);
+    else
+        printf("\n==> Game draw <==\n\n");
+
+    getchar(); // getch() can be used in window.
+
+    return 0;
+}
+
+void board()
+{
+	system("cls");
+	printf("\n\n***\tTic Tac Toe***\n\n");
+
+	printf("%s (X)------Vs.------%s (Y)\n\n\n",Player1,Player2);
+	char ch;
+	int i,ii,j;
+	for(i=0;i<3;i++) {
+		ii = 3*i;
+		printf("|_____|_____|_____|\n");
+		printf("|     |     |     |\n");
+		for (j=0;j<3;++j) {
+			ch = Box[ii+j].value + '0';
+			if (Box[ii+j].player == 1) printf("| [%c] ",ch);
+			else if (Box[ii+j].player == 2) printf("| (%c) ",ch);
+			else printf("|     ");
+		}
+		printf("|\n");
+	}
+	printf("|_____|_____|_____|\n\n");
+}
+
+int checkwin()
+{
+	int i,ii;
+	for(i=0;i<3;i++) {
+		// Check if any row is matching.
+		ii = 3*i;
+		if (Box[ii].value>0 && Box[ii].value == Box[ii+1].value && Box[ii+1].value == Box[ii+2].value)
+			return 1;
+		// Check if any column is matching.
+		if (Box[i].value>0 && Box[i].value == Box[i+3].value && Box[i+3].value == Box[i+6].value)
+			return 1;
+	}
+	// Check if leading diagonal is matching.
+	if (Box[0].value>0 && Box[0].value == Box[4].value && Box[4].value == Box[8].value)
+		return 1;
+	// Check if lagging diagonal is matching.
+	if (Box[2].value>0 && Box[2].value == Box[4].value && Box[4].value == Box[6].value)
+		return 1;
+
+	// check if any box in the board is still empty.
+	for(i=0;i<9;i++) {
+		if (Box[i].value == 0) return -1;
+	}
+	// All the boxes are filled now. Game over.
+	return 0;
+}
